@@ -43,13 +43,11 @@ export default function LoginPage(): React.JSX.Element {
         const data = loginMutation.data;
         if (!data) return;
 
-        console.log(data);
         if (!data.success) {
             toast.error(data.errors);
             return;
         }
 
-        console.log("Router hit!");
         router.push("/dashboard");
     }
     return (

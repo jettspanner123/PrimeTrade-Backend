@@ -6,8 +6,10 @@ import { BASE_RESPONSE } from "../base/base.types";
 
 // MARK: Exported Schemas
 export const createTaskSchema = z.object({
-    userId: z.string(),
-    title: z.string(),
+    userId: z.string({ error: "User ID is required" }),
+    title: z
+        .string({ error: "Title is required" })
+        .min(1, { message: "Title cannot be empty" }),
     description: z.string().optional(),
 });
 
