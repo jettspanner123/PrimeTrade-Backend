@@ -14,14 +14,18 @@ export const registerSchema = z.object({
         .min(1, { error: "First Name should be atleast 1 character long." }),
     lastName: z.string({ error: "Last Name not provided!" }).optional(),
     email: z.email({ error: "Email not provided!" }),
-    password: z.string({ error: "Password not provided!" }),
+    password: z
+        .string({ error: "Password not provided!" })
+        .min(8, { error: "Password should be atleast 8 characters!" }),
 });
 
 export const loginSchema = z.object({
     username: z
         .string({ error: "Username not provided!" })
         .min(8, { error: "Username should be atleast 8 characters long." }),
-    password: z.string({ error: "Password not provided!" }),
+    password: z
+        .string({ error: "Password not provided!" })
+        .min(8, { error: "Password should be atleast 8 characters!" }),
 });
 
 // MARK: Exported Types

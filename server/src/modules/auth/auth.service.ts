@@ -50,8 +50,8 @@ export default class AuthService {
         if (!user) throw new Error("User does not exist!");
 
         const isPasswordSame = await PasswordService.comparePassword(
-            user.password,
             password,
+            user.password,
         );
 
         if (!isPasswordSame) throw new Error("Wrong Password!");
