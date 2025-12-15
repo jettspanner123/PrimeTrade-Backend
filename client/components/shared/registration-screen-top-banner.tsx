@@ -13,6 +13,7 @@ import { FaNoteSticky } from "react-icons/fa6";
 import ToggleThemeButton from "./toogle-theme-button";
 import { motion } from "framer-motion";
 import { TooltipContent, Tooltip, TooltipTrigger } from "../ui/tooltip";
+import { AlertDialog } from "@/components/ui/alert-dialog";
 
 interface RegistrationScreenTopBannerProps {
     trailingChildren?: React.ReactNode;
@@ -35,33 +36,35 @@ export default function RegistrationScreenTopBanner({
                 layout
                 className={`w-full ${isOnDashboardPage ? "max-w-[1200px]" : "max-w-[600px]"}`}
             >
-                <Card className="w-full !py-4 !px-6">
-                    <div className="w-full flex items-center justify-between">
-                        <h1 className="font-bold flex items-center gap-4">
-                            <Link href={"/"}>
-                                <Button
-                                    variant={"outline"}
-                                    className="!m-0 !px-2"
-                                >
-                                    <FaNoteSticky />
-                                </Button>
-                            </Link>
-                            Todo App
-                        </h1>
+                <AlertDialog>
+                    <Card className="w-full !py-4 !px-6">
+                        <div className="w-full flex items-center justify-between">
+                            <h1 className="font-bold flex items-center gap-4">
+                                <Link href={"/"}>
+                                    <Button
+                                        variant={"outline"}
+                                        className="!m-0 !px-2"
+                                    >
+                                        <FaNoteSticky />
+                                    </Button>
+                                </Link>
+                                Todo App
+                            </h1>
 
-                        <div className="flex items-center gap-4">
-                            {trailingChildren}
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <ToggleThemeButton />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Toggle Theme</p>
-                                </TooltipContent>
-                            </Tooltip>
+                            <div className="flex items-center gap-4">
+                                {trailingChildren}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <ToggleThemeButton />
+                                    </TooltipTrigger>
+                                    <TooltipContent asChild>
+                                        <p>Toggle Theme</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
                         </div>
-                    </div>
-                </Card>
+                    </Card>
+                </AlertDialog>
             </motion.div>
         </React.Fragment>
     );

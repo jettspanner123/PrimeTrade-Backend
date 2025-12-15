@@ -7,7 +7,11 @@ import type {
 import { BASE_API_ROUTE } from "../../../server/src/constants/api";
 import {
     CREATE_TASK_DTO,
+    DELETE_TASK_DTO,
+    TASK_RESPONSE,
     TASKS_RESPONSE,
+    UPDATE_TASK_DTO,
+    UPDATE_TASK_RESPONSE,
 } from "../../../shared/types/task/task.types";
 import { BASE_RESPONSE } from "../../../shared/types/base/base.types";
 
@@ -85,6 +89,46 @@ export default class APIService {
         return await res.json();
     }
 
+    public static async deleteTask(
+        taskDetails: DELETE_TASK_DTO,
+    ): Promise<TASK_RESPONSE> {
+        const { userId, taskId } = taskDetails;
+        const res = await fetch(APIHelperService.getTaskEndpoint(""), {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                taskId,
+                userId,
+            }),
+        });
+        return await res.json();
+    }
+
+    public static async updateTask({
+        taskId,
+        task,
+        userId,
+        status,
+    }: UPDATE_TASK_DTO): Promise<UPDATE_TASK_RESPONSE> {
+        const res = await fetch(APIHelperService.getTaskEndpoint(), {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                task,
+                taskId,
+                userId,
+                status,
+            }),
+        });
+        return await res.json();
+    }
+
     public static async logout(): Promise<BASE_RESPONSE> {
         const res = await fetch(APIHelperService.getAuthEndpoint("/logout"), {
             method: "POST",
@@ -103,6 +147,7 @@ class APIHelperService {
             ? `${BASE_API_ROUTE}/auth`
             : `${BASE_API_ROUTE}/auth${extension}`;
     }
+
     public static getTaskEndpoint(extension: string = ""): string {
         return extension.length == 0
             ? `${BASE_API_ROUTE}/task`

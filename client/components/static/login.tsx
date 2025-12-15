@@ -22,8 +22,10 @@ import CachingKeys from "@/constants/caching-keys";
 import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
 import { Spinner } from "../ui/spinner";
+import { useAuthUser } from "@/stores/user-store";
 
 export default function LoginPage(): React.JSX.Element {
+    const { setUser } = useAuthUser();
     const router = useRouter();
     const form = useForm<LOGIN_DTO>({
         resolver: zodResolver(loginSchema),
@@ -36,20 +38,15 @@ export default function LoginPage(): React.JSX.Element {
     const loginMutation = useMutation({
         mutationFn: APIService.login,
         mutationKey: [CachingKeys.LOGIN_KEY],
+        onSuccess: (data) => {
+            if (!data.success) {
+                toast.error(`Login failed. ${data.errors}`);
+                return;
+            }
+            setUser(data.user);
+            router.push("/dashboard");
+        },
     });
-
-    async function onFormSubmit(formData: LOGIN_DTO) {
-        loginMutation.mutate(formData);
-        const data = loginMutation.data;
-        if (!data) return;
-
-        if (!data.success) {
-            toast.error(data.errors);
-            return;
-        }
-
-        router.push("/dashboard");
-    }
     return (
         <Card className="w-full max-w-[600px]">
             <motion.div layout>
@@ -62,10 +59,7 @@ export default function LoginPage(): React.JSX.Element {
                 </CardHeader>
             </motion.div>
             <CardContent className="w-full">
-                <form
-                    onSubmit={form.handleSubmit(onFormSubmit)}
-                    className={"flex flex-col gap-6"}
-                >
+                <form className={"flex flex-col gap-6"}>
                     <motion.div layout className={"grid gap-2"}>
                         <Label htmlFor="email">Username</Label>
                         <Input
@@ -110,7 +104,9 @@ export default function LoginPage(): React.JSX.Element {
             <CardFooter className="flex flex-col gap-3 w-full">
                 <motion.div layout className="w-full grid gap-3">
                     <Button
-                        onClick={form.handleSubmit(onFormSubmit)}
+                        onClick={form.handleSubmit((formData: LOGIN_DTO) => {
+                            loginMutation.mutate(formData);
+                        })}
                         type="submit"
                         className="w-full"
                     >

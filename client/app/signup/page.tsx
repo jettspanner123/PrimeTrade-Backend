@@ -17,6 +17,7 @@ import RegistrationScreenTopBanner from "@/components/shared/registration-screen
 import { useForm } from "react-hook-form";
 import {
     REGISTER_DTO,
+    REGISTER_RESPONSE,
     registerSchema,
 } from "../../../shared/types/auth/auth.types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,6 +60,18 @@ export default function SignupPage(): React.JSX.Element {
     const signUpMutation = useMutation({
         mutationFn: APIService.register,
         mutationKey: [CachingKeys.SIGNUP_KEY],
+        onSuccess: (data: REGISTER_RESPONSE) => {
+            if (!data.success) {
+                toast.error(data.errors);
+                return;
+            }
+
+            toast.success(`Welcome ${data.user?.firstName}`);
+            setUser(data.user);
+            setTimeout(() => {
+                router.push("/dashboard");
+            }, 1000);
+        },
     });
 
     const { setUser } = useAuthUser();
@@ -73,21 +86,8 @@ export default function SignupPage(): React.JSX.Element {
             password,
         } satisfies REGISTER_DTO;
         signUpMutation.mutate(signUpData);
-        const data = signUpMutation.data;
-        if (!data) return;
-
-        if (!data.success) {
-            toast.error(data.errors);
-            return;
-        }
-
-        setUser(data.user);
-        toast.success(`Welcome Onboard, ${data.user?.username}!`);
-
-        setTimeout(() => {
-            router.push("/dashboard");
-        }, 1500);
     }
+
     return (
         <React.Fragment>
             <main className="w-screen h-screen flex flex-col gap-2 justify-center items-center">
@@ -246,3 +246,4 @@ export default function SignupPage(): React.JSX.Element {
         </React.Fragment>
     );
 }
+

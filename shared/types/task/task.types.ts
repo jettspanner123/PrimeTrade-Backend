@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TaskModel } from "../../../server/src/db/generated/prisma/models";
+import { TaskStatus } from "../../../server/src/db/generated/prisma/enums";
 import { zValidator } from "@hono/zod-validator";
 import { StatusCodes } from "http-status-codes";
 import { BASE_RESPONSE } from "../base/base.types";
@@ -14,19 +15,25 @@ export const createTaskSchema = z.object({
 });
 
 export const deleteTaskSchema = z.object({
-    userId: z.string(),
-    taskId: z.string(),
+    userId: z.string({ error: "User ID not provided!" }),
+    taskId: z.string({ error: "Task ID not provided!" }),
 });
 
-export const updateTaskSchema = z.object({
-    taskId: z.string(),
-    userId: z.string(),
-    task: createTaskSchema
-        .omit({
-            userId: true,
-        })
-        .partial(),
-});
+export const updateTaskSchema = z
+    .object({
+        taskId: z.string({ error: "Task ID not provided!" }),
+        userId: z.string({ error: "User ID not provided!" }),
+        task: createTaskSchema
+            .omit({
+                userId: true,
+            })
+            .partial(),
+    })
+    .extend({
+        status: z.enum([...Object.values(TaskStatus)], {
+            error: "Task Status not provided!",
+        }),
+    });
 
 // MARK: Exported Types
 export type BASE_TASK = TaskModel;
@@ -34,18 +41,22 @@ export type PARTIAL_TASK = Partial<BASE_TASK>;
 export type CREATE_TASK_DTO = z.infer<typeof createTaskSchema>;
 export type DELETE_TASK_DTO = z.infer<typeof deleteTaskSchema>;
 export type UPDATE_TASK_DTO = z.infer<typeof updateTaskSchema>;
+
 export interface TASK_RESPONSE extends BASE_RESPONSE {
     task: BASE_TASK | null;
     errors: Array<string> | string | null;
 }
+
 export interface TASKS_RESPONSE extends BASE_RESPONSE {
     tasks: Array<BASE_TASK> | null;
     errors: Array<string> | string | null;
 }
+
 export type UPDATE_TASK_SERVICE_RESPONSE = {
     previousTask: BASE_TASK | null;
     currentTask: BASE_TASK | null;
 };
+
 export interface UPDATE_TASK_RESPONSE
     extends BASE_RESPONSE, UPDATE_TASK_SERVICE_RESPONSE {
     errors: Array<string> | string | null;
