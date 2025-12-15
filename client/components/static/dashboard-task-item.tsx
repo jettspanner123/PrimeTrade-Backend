@@ -98,7 +98,12 @@ export default function Dashboard_TaskItem({
                 toast.error(`Failed to update task! ${data.errors}`);
                 return;
             }
+
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.TASK_KEY, user.id],
+            });
             toast.success(data.message);
+            setIsEditDialogOpen(false);
         },
     });
     const form = useForm<UPDATE_TASK_DTO>({
@@ -122,14 +127,13 @@ export default function Dashboard_TaskItem({
     }
 
     function onUpdateTask(formData: UPDATE_TASK_DTO) {
-        console.log(formData);
-        // const { taskId, task: updatedTask, userId } = formData;
-        // updateTaskMutation.mutate({
-        //     taskId,
-        //     userId,
-        //     task: updatedTask,
-        //     status: selectedTaskStatus,
-        // });
+        const { taskId, task: updatedTask, userId } = formData;
+        updateTaskMutation.mutate({
+            taskId,
+            userId,
+            task: updatedTask,
+            status: selectedTaskStatus,
+        });
     }
 
     return (
