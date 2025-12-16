@@ -161,3 +161,7 @@ cd PrimeTrade-Backend
     ```
 
     This will only work if you have already instaled turbo. Using turbo you don't have to run the project in 2 different instances of the terminal.
+
+## 🙏 Acknowledgements
+
+I want to express my sincere gratitude to the PrimeTrade team for this incredible opportunity! I'm truly excited to contribute and looking forward to working with you all. 🚀✨
