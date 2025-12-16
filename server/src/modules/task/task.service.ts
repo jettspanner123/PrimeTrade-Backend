@@ -38,8 +38,28 @@ export default class TaskService {
     // Get All Task for a user id.
     async getTasksForId(userId: string): Promise<Array<BASE_TASK>> {
         await TaskHelperService.checkIfUserIdExists(userId);
-        const tasks = await db.task.findMany({ where: { userId } });
-        return tasks.filter((task) => task.deletionStatus !== "SOFT_DELETED");
+        const tasks = await db.task.findMany({
+            where: {
+                userId,
+                deletionStatus: "NOT_DELETED",
+                status: {
+                    not: "ARCHIVED",
+                },
+            },
+        });
+        return tasks;
+    }
+
+    async getArchivedTasksForId(userId: string): Promise<Array<BASE_TASK>> {
+        await TaskHelperService.checkIfUserIdExists(userId);
+        const tasks = await db.task.findMany({
+            where: {
+                userId,
+                status: "ARCHIVED",
+                deletionStatus: "NOT_DELETED",
+            },
+        });
+        return tasks;
     }
 
     async getRecentlyDeletedTasksForId(
@@ -94,7 +114,7 @@ export default class TaskService {
     async updateTask(
         taskDetails: UPDATE_TASK_DTO,
     ): Promise<UPDATE_TASK_SERVICE_RESPONSE> {
-        const { userId, taskId, task: toUpdateDetails } = taskDetails;
+        const { userId, taskId, task: toUpdateDetails, status } = taskDetails;
         const { description, title } = toUpdateDetails;
         const previousTask = await TaskHelperService.checkIfTaskIdExists({
             userId,
@@ -106,6 +126,7 @@ export default class TaskService {
             data: {
                 title,
                 description,
+                status,
             },
         });
 

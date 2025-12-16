@@ -196,6 +196,34 @@ export default class TaskController {
         }
     }
 
+    public static async getArchivedTasksForId(context: Context) {
+        try {
+            // @ts-ignore
+            const { id }: PARAM_ID_DTO = context.req.valid("param");
+
+            const tasks = await taskService.getArchivedTasksForId(id);
+            return context.json(
+                {
+                    success: true,
+                    message: "List of archived tasks!",
+                    tasks,
+                    errors: null,
+                } satisfies TASKS_RESPONSE,
+                StatusCodes.OK,
+            );
+        } catch (err: any) {
+            return context.json(
+                {
+                    success: false,
+                    message: "Failed to fetch archived tasks!",
+                    tasks: null,
+                    errors: err instanceof Error ? err.message : err,
+                } satisfies TASKS_RESPONSE,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
     public static async restoreTaskById(context: Context) {
         try {
             const { userId, taskId }: RESTORE_TASK_DTO =

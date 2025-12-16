@@ -158,6 +158,22 @@ export default class APIService {
         return await res.json();
     }
 
+    public static async getArchivedTasks(
+        userId: string,
+    ): Promise<TASKS_RESPONSE> {
+        const res = await fetch(
+            APIHelperService.getTaskEndpoint(`/archived/${userId}`),
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+        return await res.json();
+    }
+
     public static async restoreTask(
         taskDetails: RESTORE_TASK_DTO,
     ): Promise<TASK_RESPONSE> {

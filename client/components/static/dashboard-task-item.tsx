@@ -118,6 +118,12 @@ export default function Dashboard_TaskItem({
             await queryClient.invalidateQueries({
                 queryKey: [CachingKeys.TASK_KEY, user.id],
             });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.ARCHIVED_TASK_KEY, user.id],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.DELETED_TASK_KEY, user.id],
+            });
             toast.success(data.message);
             setIsEditDialogOpen(false);
         },

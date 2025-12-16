@@ -11,7 +11,16 @@ const taskRoute = new Hono();
 
 taskRoute.get("/health", TaskController.healthCheck);
 taskRoute.get("/:id", PARAM_ID_VALIDTOR, TaskController.getTasksForId);
-taskRoute.get("/recently-deleted/:id", PARAM_ID_VALIDTOR, TaskController.getRecentlyDeletedTasksForId)
+taskRoute.get(
+    "/recently-deleted/:id",
+    PARAM_ID_VALIDTOR,
+    TaskController.getRecentlyDeletedTasksForId,
+);
+taskRoute.get(
+    "/archived/:id",
+    PARAM_ID_VALIDTOR,
+    TaskController.getArchivedTasksForId,
+);
 taskRoute.post("/", CREATE_TASK_VALIDATOR, TaskController.createTask);
 taskRoute.post("/restore", RESTORE_TASK_VALIDATOR, TaskController.restoreTaskById)
 taskRoute.delete("/", DELETE_TASK_VALIDATOR, TaskController.deleteTask);

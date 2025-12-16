@@ -11,7 +11,7 @@ import CachingKeys from "@/constants/caching-keys";
 import { BASE_USER } from "../../../shared/types/user/user.types";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { ClipboardPlusIcon, TrashIcon } from "lucide-react";
+import { ClipboardPlusIcon, FolderClosedIcon, FolderIcon, TrashIcon } from "lucide-react";
 import {
     Empty,
     EmptyContent,
@@ -94,14 +94,19 @@ function DashboardContent({
     const { data: deletedTaskData, isPending: isDeletedTaskLoading } = useQuery(
         {
             queryFn: () => APIService.getDeletedTasks(user.id),
-            queryKey: [CachingKeys.DELETED_TASK_KEY],
+            queryKey: [CachingKeys.DELETED_TASK_KEY, user.id],
+        },
+    );
+
+    const { data: archivedTaskData, isPending: isArchivedTaskLoading } =
+        useQuery({
+            queryFn: () => APIService.getArchivedTasks(user.id),
+            queryKey: [CachingKeys.ARCHIVED_TASK_KEY, user.id],
+            enabled: !!user,
         },
     );
 
     const { currentTab, setCurrentTab } = useDashboardTabsStore();
-
-    console.log("Deleted Task", deletedTaskData);
-    console.log("Normal Task", taskData);
 
     return (
         <React.Fragment>
@@ -147,13 +152,17 @@ function DashboardContent({
                                 taskData={taskData!}
                             />
                         ) : currentTab === DashboardTypes.RecentlyDeleted ? (
-                            <Dashboard_RecentlyDeleatedContent
+                            <Dashboard_RecentlyDeletedContent
                                 isTasksLoading={isDeletedTaskLoading}
                                 taskData={deletedTaskData!}
                                 user={user}
                             />
                         ) : currentTab === DashboardTypes.Archived ? (
-                            <div>Archived</div>
+                            <Dashboard_ArchivedContent
+                                isTasksLoading={isArchivedTaskLoading}
+                                taskData={archivedTaskData!}
+                                user={user}
+                            />
                         ) : (
                             <div>Statistics</div>
                         )}
@@ -170,7 +179,7 @@ interface DashboardRecentlyDeletedTaskContentProps {
     user: BASE_USER;
 }
 
-function Dashboard_RecentlyDeleatedContent({
+function Dashboard_RecentlyDeletedContent({
     isTasksLoading,
     taskData,
     user,
@@ -199,6 +208,54 @@ function Dashboard_RecentlyDeleatedContent({
                     {taskData!.tasks!.map((task, index) => {
                         return (
                             <Dashboard_RecentlyDeletedTaskItem
+                                key={index}
+                                task={task}
+                                user={user}
+                                index={index}
+                            />
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+interface DashboardArchivedTaskContentProps {
+    isTasksLoading: boolean;
+    taskData: TASKS_RESPONSE | null;
+    user: BASE_USER;
+}
+
+function Dashboard_ArchivedContent({
+    isTasksLoading,
+    taskData,
+    user,
+}: DashboardArchivedTaskContentProps): React.ReactElement {
+    return (
+        <div>
+            {isTasksLoading ? (
+                <div className={"w-full grid grid-cols-3 gap-4"}>
+                    <Dashboard_TaskItemSkeleton />
+                </div>
+            ) : taskData?.tasks?.length === 0 ? (
+                <Empty>
+                    <EmptyHeader>
+                        <EmptyMedia>
+                            <FolderClosedIcon />
+                        </EmptyMedia>
+                        <EmptyTitle>No Archived Tasks!</EmptyTitle>
+                        <EmptyDescription>
+                            Archived tasks will appear here once you mark them
+                            as archived.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                </Empty>
+            ) : (
+                <div className={"w-full grid grid-cols-3 gap-4"}>
+                    {taskData!.tasks!.map((task, index) => {
+                        return (
+                            <Dashboard_TaskItem
                                 key={index}
                                 task={task}
                                 user={user}
@@ -314,7 +371,7 @@ function Dashboard_RecentlyDeletedTaskItem({
                         <AlertDialogHeader>
                             <AlertDialogTitle>Restore task?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This task will be restored to the main task's
+                                This task will be restored to the main task&#39;s
                                 list.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
