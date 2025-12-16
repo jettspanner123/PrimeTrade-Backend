@@ -50,6 +50,41 @@ export default class TaskService {
         return tasks;
     }
 
+    async getTaskStatsForId(userId: string) {
+        await TaskHelperService.checkIfUserIdExists(userId);
+        const tasks = await db.task.findMany({
+            where: {
+                userId,
+            },
+        });
+
+        const totalTasks = tasks.length;
+        const activeTasks = tasks.filter(
+            (t) =>
+                t.deletionStatus === "NOT_DELETED" && t.status !== "ARCHIVED",
+        ).length;
+        const completedTasks = tasks.filter(
+            (t) =>
+                t.deletionStatus === "NOT_DELETED" &&
+                t.status === "COMPLETED",
+        ).length;
+        const archivedTasks = tasks.filter(
+            (t) =>
+                t.deletionStatus === "NOT_DELETED" && t.status === "ARCHIVED",
+        ).length;
+        const deletedTasks = tasks.filter(
+            (t) => t.deletionStatus === "SOFT_DELETED",
+        ).length;
+
+        return {
+            totalTasks,
+            activeTasks,
+            completedTasks,
+            archivedTasks,
+            deletedTasks,
+        };
+    }
+
     async getArchivedTasksForId(userId: string): Promise<Array<BASE_TASK>> {
         await TaskHelperService.checkIfUserIdExists(userId);
         const tasks = await db.task.findMany({

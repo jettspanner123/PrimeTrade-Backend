@@ -21,6 +21,11 @@ taskRoute.get(
     PARAM_ID_VALIDTOR,
     TaskController.getArchivedTasksForId,
 );
+taskRoute.get(
+    "/stats/:id",
+    PARAM_ID_VALIDTOR,
+    TaskController.getTaskStatsForId,
+);
 taskRoute.post("/", CREATE_TASK_VALIDATOR, TaskController.createTask);
 taskRoute.post("/restore", RESTORE_TASK_VALIDATOR, TaskController.restoreTaskById)
 taskRoute.delete("/", DELETE_TASK_VALIDATOR, TaskController.deleteTask);

@@ -54,6 +54,19 @@ export interface TASKS_RESPONSE extends BASE_RESPONSE {
     errors: Array<string> | string | null;
 }
 
+export interface TASK_STATS {
+    totalTasks: number;
+    activeTasks: number;
+    completedTasks: number;
+    archivedTasks: number;
+    deletedTasks: number;
+}
+
+export interface TASK_STATS_RESPONSE extends BASE_RESPONSE {
+    stats: TASK_STATS | null;
+    errors: Array<string> | string | null;
+}
+
 export type UPDATE_TASK_SERVICE_RESPONSE = {
     previousTask: BASE_TASK | null;
     currentTask: BASE_TASK | null;

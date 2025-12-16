@@ -64,6 +64,9 @@ export default function Dashboard_CreateTodoDialog({
             await queryClient.invalidateQueries({
                 queryKey: [CachingKeys.TASK_KEY, user.id],
             });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.TASK_STATS_KEY, user.id],
+            });
             toast.success("Task created successfully!");
             setCreateTodoModelOpen(false);
             form.reset();

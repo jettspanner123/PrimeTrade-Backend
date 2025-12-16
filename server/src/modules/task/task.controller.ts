@@ -11,6 +11,7 @@ import {
     RESTORE_TASK_DTO,
     TASK_RESPONSE,
     TASKS_RESPONSE,
+    TASK_STATS_RESPONSE,
     UPDATE_TASK_DTO,
     UPDATE_TASK_RESPONSE,
 } from "../../../../shared/types/task/task.types.js";
@@ -219,6 +220,34 @@ export default class TaskController {
                     tasks: null,
                     errors: err instanceof Error ? err.message : err,
                 } satisfies TASKS_RESPONSE,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    public static async getTaskStatsForId(context: Context) {
+        try {
+            // @ts-ignore
+            const { id }: PARAM_ID_DTO = context.req.valid("param");
+
+            const stats = await taskService.getTaskStatsForId(id);
+            return context.json(
+                {
+                    success: true,
+                    message: "Task statistics fetched successfully!",
+                    stats,
+                    errors: null,
+                } satisfies TASK_STATS_RESPONSE,
+                StatusCodes.OK,
+            );
+        } catch (err: any) {
+            return context.json(
+                {
+                    success: false,
+                    message: "Failed to fetch task statistics!",
+                    stats: null,
+                    errors: err instanceof Error ? err.message : err,
+                } satisfies TASK_STATS_RESPONSE,
                 StatusCodes.INTERNAL_SERVER_ERROR,
             );
         }

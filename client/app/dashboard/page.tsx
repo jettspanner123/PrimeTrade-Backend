@@ -11,7 +11,12 @@ import CachingKeys from "@/constants/caching-keys";
 import { BASE_USER } from "../../../shared/types/user/user.types";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { ClipboardPlusIcon, FolderClosedIcon, FolderIcon, TrashIcon } from "lucide-react";
+import {
+    BarChart2Icon,
+    ClipboardPlusIcon,
+    FolderClosedIcon,
+    TrashIcon,
+} from "lucide-react";
 import {
     Empty,
     EmptyContent,
@@ -27,6 +32,7 @@ import { useDashboardTabsStore } from "@/stores/dashboard-tabs";
 import {
     BASE_TASK,
     TASKS_RESPONSE,
+    TASK_STATS_RESPONSE,
 } from "../../../shared/types/task/task.types";
 import { DashboardTypes, GetIconForTab } from "@/constants/dashboard-tasb";
 import {
@@ -48,6 +54,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import Dashboard_ArchivedContent from "@/components/static/dashboard-archive-tab";
+import Dashboard_RecentlyDeletedContent from "@/components/static/dashboard-recently-deleted-tab";
 
 export default function DashboardPage(): React.JSX.Element {
     const { user, setUser } = useAuthUser();
@@ -105,6 +113,12 @@ function DashboardContent({
             enabled: !!user,
         },
     );
+
+    const { data: taskStatsData, isPending: isTaskStatsLoading } = useQuery({
+        queryFn: () => APIService.getTaskStats(user.id),
+        queryKey: [CachingKeys.TASK_STATS_KEY, user.id],
+        enabled: !!user,
+    });
 
     const { currentTab, setCurrentTab } = useDashboardTabsStore();
 
@@ -164,228 +178,15 @@ function DashboardContent({
                                 user={user}
                             />
                         ) : (
-                            <div>Statistics</div>
+                            <Dashboard_StatisticsContent
+                                isStatsLoading={isTaskStatsLoading}
+                                statsData={taskStatsData ?? null}
+                            />
                         )}
                     </Card>
                 </div>
             </main>
         </React.Fragment>
-    );
-}
-
-interface DashboardRecentlyDeletedTaskContentProps {
-    isTasksLoading: boolean;
-    taskData: TASKS_RESPONSE | null;
-    user: BASE_USER;
-}
-
-function Dashboard_RecentlyDeletedContent({
-    isTasksLoading,
-    taskData,
-    user,
-}: DashboardRecentlyDeletedTaskContentProps): React.ReactElement {
-    return (
-        <div>
-            {isTasksLoading ? (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
-                    <Dashboard_TaskItemSkeleton />
-                </div>
-            ) : taskData?.tasks?.length === 0 ? (
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia>
-                            <TrashIcon />
-                        </EmptyMedia>
-                        <EmptyTitle>No Recently Deleted Tasks!</EmptyTitle>
-                        <EmptyDescription>
-                            You haven&apos;t deleted any tasks yet. Once a task
-                            is deleted it will show here.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                </Empty>
-            ) : (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
-                    {taskData!.tasks!.map((task, index) => {
-                        return (
-                            <Dashboard_RecentlyDeletedTaskItem
-                                key={index}
-                                task={task}
-                                user={user}
-                                index={index}
-                            />
-                        );
-                    })}
-                </div>
-            )}
-        </div>
-    );
-}
-
-interface DashboardArchivedTaskContentProps {
-    isTasksLoading: boolean;
-    taskData: TASKS_RESPONSE | null;
-    user: BASE_USER;
-}
-
-function Dashboard_ArchivedContent({
-    isTasksLoading,
-    taskData,
-    user,
-}: DashboardArchivedTaskContentProps): React.ReactElement {
-    return (
-        <div>
-            {isTasksLoading ? (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
-                    <Dashboard_TaskItemSkeleton />
-                </div>
-            ) : taskData?.tasks?.length === 0 ? (
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia>
-                            <FolderClosedIcon />
-                        </EmptyMedia>
-                        <EmptyTitle>No Archived Tasks!</EmptyTitle>
-                        <EmptyDescription>
-                            Archived tasks will appear here once you mark them
-                            as archived.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                </Empty>
-            ) : (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
-                    {taskData!.tasks!.map((task, index) => {
-                        return (
-                            <Dashboard_TaskItem
-                                key={index}
-                                task={task}
-                                user={user}
-                                index={index}
-                            />
-                        );
-                    })}
-                </div>
-            )}
-        </div>
-    );
-}
-
-interface DashboardRecentlyDeletedTaskItemProps {
-    task: BASE_TASK;
-    user: BASE_USER;
-    index: number;
-}
-
-function Dashboard_RecentlyDeletedTaskItem({
-    task,
-    user,
-    index,
-}: DashboardRecentlyDeletedTaskItemProps): React.JSX.Element {
-    const queryClient = useQueryClient();
-    const restoreTaskMutation = useMutation({
-        mutationFn: APIService.restoreTask,
-        mutationKey: [
-            CachingKeys.TASK_KEY,
-            user.id,
-            CachingKeys.DELETED_TASK_KEY,
-        ],
-        onSuccess: async (data) => {
-            if (!data.success) {
-                toast.error(data.message);
-                return;
-            }
-
-            queryClient.setQueryData<TASKS_RESPONSE>(
-                [CachingKeys.TASK_KEY, user.id],
-                (old) => {
-                    if (!old) return old;
-                    return {
-                        ...old,
-                        tasks: old.tasks?.filter((t) => t.id !== task.id) ?? [],
-                    };
-                },
-            );
-
-            await queryClient.invalidateQueries({
-                queryKey: [
-                    user.id,
-                    CachingKeys.TASK_KEY,
-                ],
-            });
-            toast.success(data.message);
-        },
-    });
-
-    function onTaskRestore() {
-        restoreTaskMutation.mutate({
-            taskId: task.id,
-            userId: user.id,
-        });
-    }
-
-    return (
-        <motion.span
-            animate={{
-                opacity: 1,
-                filter: "blur(0px)",
-            }}
-            initial={{
-                opacity: 0,
-                filter: "blur(10px)",
-            }}
-            exit={{
-                opacity: 0,
-                filter: "blur(10px)",
-            }}
-            transition={{
-                duration: 0.3,
-                delay: 0.05 * index,
-            }}
-            className={"min-h-[50px] flex flex-col justify-start"}
-        >
-            <AlertDialog>
-                <Item
-                    variant={"outline"}
-                    className={
-                        "h-full w-full cursor-pointer !p-0 flex justify-start items-start hover:dark:bg-white/10 overflow-clip hover:bg-black/5"
-                    }
-                >
-                    <AlertDialogTrigger className={"w-full h-full"}>
-                        <ItemContent className={"!p-4 h-full w-full"}>
-                            <ItemTitle className={"text-left"}>
-                                {task.title.length < 45
-                                    ? task.title
-                                    : task.title.substring(0, 15) + "..."}
-                            </ItemTitle>
-                            {task.description && (
-                                <ItemDescription className={"!p-0 text-left"}>
-                                    {task.description.length < 25
-                                        ? task.description
-                                        : task.description.substring(0, 25) +
-                                          "..."}
-                                </ItemDescription>
-                            )}
-                        </ItemContent>
-                    </AlertDialogTrigger>
-
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Restore task?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This task will be restored to the main task&#39;s
-                                list.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={onTaskRestore}>
-                                Restore
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </Item>
-            </AlertDialog>
-        </motion.span>
     );
 }
 
@@ -445,6 +246,174 @@ function Dashboard_HomeContent({
                     })}
                 </div>
             )}
+        </div>
+    );
+}
+
+interface DashboardStatisticsContentProps {
+    isStatsLoading: boolean;
+    statsData: TASK_STATS_RESPONSE | null;
+}
+
+function Dashboard_StatisticsContent({
+    isStatsLoading,
+    statsData,
+}: DashboardStatisticsContentProps): React.JSX.Element {
+    if (isStatsLoading || !statsData) {
+        return (
+            <div className="flex h-full w-full items-center justify-center">
+                <Spinner className="size-6" />
+            </div>
+        );
+    }
+
+    if (!statsData.success || !statsData.stats) {
+        return (
+            <div className="flex h-full w-full items-center justify-center">
+                <p className="text-sm text-red-500">
+                    Failed to load statistics. Please try again later.
+                </p>
+            </div>
+        );
+    }
+
+    const {
+        totalTasks,
+        activeTasks,
+        completedTasks,
+        archivedTasks,
+        deletedTasks,
+    } = statsData.stats;
+
+    const maxValue = Math.max(
+        totalTasks,
+        activeTasks,
+        completedTasks,
+        archivedTasks,
+        deletedTasks,
+        1,
+    );
+
+    const rows = [
+        { label: "Active", value: activeTasks },
+        { label: "Completed", value: completedTasks },
+        { label: "Archived", value: archivedTasks },
+        { label: "Deleted", value: deletedTasks },
+    ];
+
+    return (
+        <div className="flex h-full flex-col gap-6 py-4">
+            {/* Top summary cards */}
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <Card className="flex flex-col gap-1 px-4 py-3">
+                    <span className="text-xs uppercase text-muted-foreground">
+                        Total Tasks
+                    </span>
+                    <span className="text-2xl font-semibold">{totalTasks}</span>
+                </Card>
+                <Card className="flex flex-col gap-1 px-4 py-3">
+                    <span className="text-xs uppercase text-muted-foreground">
+                        Active
+                    </span>
+                    <span className="text-2xl font-semibold">
+                        {activeTasks}
+                    </span>
+                </Card>
+                <Card className="flex flex-col gap-1 px-4 py-3">
+                    <span className="text-xs uppercase text-muted-foreground">
+                        Completed
+                    </span>
+                    <span className="text-2xl font-semibold">
+                        {completedTasks}
+                    </span>
+                </Card>
+                <Card className="flex flex-col gap-1 px-4 py-3">
+                    <span className="text-xs uppercase text-muted-foreground">
+                        Archived
+                    </span>
+                    <span className="text-2xl font-semibold">
+                        {archivedTasks}
+                    </span>
+                </Card>
+            </div>
+
+            {/* Distribution "chart" */}
+            <Card className="flex flex-1 flex-col gap-4 px-4 py-3">
+                <div className="flex items-center gap-2">
+                    <BarChart2Icon className="size-4" />
+                    <span className="text-sm font-medium">
+                        Task distribution by state
+                    </span>
+                </div>
+
+                <div className="flex flex-1 flex-col justify-center gap-3">
+                    {rows.map((row) => {
+                        const percentage = Math.round(
+                            (row.value / maxValue) * 100,
+                        );
+                        return (
+                            <div
+                                key={row.label}
+                                className="flex items-center gap-3"
+                            >
+                                <span className="w-20 text-xs text-muted-foreground">
+                                    {row.label}
+                                </span>
+                                <div className="flex-1 rounded-full bg-muted">
+                                    <div
+                                        className="h-3 rounded-full bg-primary transition-all"
+                                        style={{ width: `${percentage}%` }}
+                                    />
+                                </div>
+                                <span className="w-10 text-right text-xs">
+                                    {row.value}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Card>
+
+            {/* Secondary insight card */}
+            <Card className="flex flex-col gap-3 px-4 py-3">
+                <span className="text-sm font-medium">
+                    Productivity & cleanup insights
+                </span>
+                <div className="grid grid-cols-2 gap-4 md:gap-8">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs uppercase text-muted-foreground">
+                            Completion rate
+                        </span>
+                        <span className="text-2xl font-semibold">
+                            {totalTasks === 0
+                                ? "0%"
+                                : `${Math.round(
+                                      (completedTasks / totalTasks) * 100,
+                                  )}%`}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            Share of all tasks that are marked completed.
+                        </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs uppercase text-muted-foreground">
+                            Cleanup rate
+                        </span>
+                        <span className="text-2xl font-semibold">
+                            {totalTasks === 0
+                                ? "0%"
+                                : `${Math.round(
+                                      ((archivedTasks + deletedTasks) /
+                                          totalTasks) *
+                                          100,
+                                  )}%`}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            Archived or deleted tasks vs. all tasks.
+                        </span>
+                    </div>
+                </div>
+            </Card>
         </div>
     );
 }

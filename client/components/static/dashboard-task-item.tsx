@@ -100,6 +100,9 @@ export default function Dashboard_TaskItem({
                     CachingKeys.DELETED_TASK_KEY,
                 ],
             });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.TASK_STATS_KEY, user.id],
+            });
             toast.success(data.message);
             setIsDeleteDialogOpen(false);
             setTimeout(() => {
@@ -123,6 +126,9 @@ export default function Dashboard_TaskItem({
             });
             await queryClient.invalidateQueries({
                 queryKey: [CachingKeys.DELETED_TASK_KEY, user.id],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.TASK_STATS_KEY, user.id],
             });
             toast.success(data.message);
             setIsEditDialogOpen(false);

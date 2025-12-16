@@ -12,6 +12,7 @@ import {
     RESTORE_TASK_DTO,
     TASK_RESPONSE,
     TASKS_RESPONSE,
+    TASK_STATS_RESPONSE,
     UPDATE_TASK_DTO,
     UPDATE_TASK_RESPONSE,
 } from "../../../shared/types/task/task.types";
@@ -163,6 +164,22 @@ export default class APIService {
     ): Promise<TASKS_RESPONSE> {
         const res = await fetch(
             APIHelperService.getTaskEndpoint(`/archived/${userId}`),
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+        return await res.json();
+    }
+
+    public static async getTaskStats(
+        userId: string,
+    ): Promise<TASK_STATS_RESPONSE> {
+        const res = await fetch(
+            APIHelperService.getTaskEndpoint(`/stats/${userId}`),
             {
                 method: "GET",
                 headers: {
