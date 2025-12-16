@@ -152,10 +152,9 @@ cd PrimeTrade-Backend
 
     The frontend application will run on `http://localhost:3001` (or another port if 3000 is taken). Open your browser to view the application.
 
-    ---------- Or ----------
 
 
-    **User Turbo (Optional)**:
+3.  **User Turbo (Optional)**:
 
     ```bash
     turbo dev
