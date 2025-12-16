@@ -155,11 +155,10 @@ cd PrimeTrade-Backend
     ---------- Or ----------
 
 
-### Turbo (Optional)
-    **User Turbo**:
+**User Turbo (Optional)**:
 
     ```bash
     turbo dev
     ```
 
-    (Optional) This will only work if you have already instaled turbo. Using turbo you don't have to run the project in 2 different instances of the terminal.
+    This will only work if you have already instaled turbo. Using turbo you don't have to run the project in 2 different instances of the terminal.
