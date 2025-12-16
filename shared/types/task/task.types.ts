@@ -18,6 +18,7 @@ export const deleteTaskSchema = z.object({
     userId: z.string({ error: "User ID not provided!" }),
     taskId: z.string({ error: "Task ID not provided!" }),
 });
+export const restoreTaskSchema = deleteTaskSchema;
 
 export const updateTaskSchema = z
     .object({
@@ -41,6 +42,7 @@ export type PARTIAL_TASK = Partial<BASE_TASK>;
 export type CREATE_TASK_DTO = z.infer<typeof createTaskSchema>;
 export type DELETE_TASK_DTO = z.infer<typeof deleteTaskSchema>;
 export type UPDATE_TASK_DTO = z.infer<typeof updateTaskSchema>;
+export type RESTORE_TASK_DTO = z.infer<typeof restoreTaskSchema>;
 
 export interface TASK_RESPONSE extends BASE_RESPONSE {
     task: BASE_TASK | null;
@@ -102,6 +104,24 @@ export const DELETE_TASK_VALIDATOR = zValidator(
 export const UPDATE_TASK_VALIDATOR = zValidator(
     "json",
     updateTaskSchema,
+    (result, context) => {
+        if (!result.success) {
+            return context.json(
+                {
+                    success: false,
+                    message: "Invalid JSON Input!",
+                    task: null,
+                    errors: result.error.issues.map((err) => err.message),
+                } satisfies TASK_RESPONSE,
+                StatusCodes.BAD_REQUEST,
+            );
+        }
+    },
+);
+
+export const RESTORE_TASK_VALIDATOR = zValidator(
+    "json",
+    restoreTaskSchema,
     (result, context) => {
         if (!result.success) {
             return context.json(

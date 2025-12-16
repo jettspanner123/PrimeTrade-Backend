@@ -4,6 +4,7 @@ import {
     updateTaskSchema,
 } from "../../../shared/types/task/task.types";
 import { BASE_USER } from "../../../shared/types/user/user.types";
+import { TASKS_RESPONSE } from "../../../shared/types/task/task.types";
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import APIService from "@/lib/api/api.service";
@@ -81,8 +82,23 @@ export default function Dashboard_TaskItem({
                 return;
             }
 
+            queryClient.setQueryData<TASKS_RESPONSE>(
+                [CachingKeys.TASK_KEY, user.id],
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        tasks: old.tasks!.filter((t) => t.id !== task.id),
+                    };
+                },
+            );
+
             await queryClient.invalidateQueries({
-                queryKey: [CachingKeys.TASK_KEY, user.id],
+                queryKey: [
+                    CachingKeys.TASK_KEY,
+                    user.id,
+                    CachingKeys.DELETED_TASK_KEY,
+                ],
             });
             toast.success(data.message);
             setIsDeleteDialogOpen(false);
@@ -146,6 +162,10 @@ export default function Dashboard_TaskItem({
                 opacity: 0,
                 filter: "blur(10px)",
             }}
+            exit={{
+                opacity: 0,
+                filter: "blur(10px)",
+            }}
             transition={{
                 duration: 0.3,
                 delay: 0.05 * index,
@@ -165,10 +185,19 @@ export default function Dashboard_TaskItem({
                             }
                         >
                             <ItemContent>
-                                <ItemTitle>{task.title}</ItemTitle>
+                                <ItemTitle>
+                                    {task.title.length < 45
+                                        ? task.title
+                                        : task.title.substring(0, 45) + "..."}
+                                </ItemTitle>
                                 {task.description && (
                                     <ItemDescription>
-                                        {task.description}
+                                        {task.description.length < 25
+                                            ? task.description
+                                            : task.description.substring(
+                                                  0,
+                                                  25,
+                                              ) + "..."}
                                     </ItemDescription>
                                 )}
                             </ItemContent>

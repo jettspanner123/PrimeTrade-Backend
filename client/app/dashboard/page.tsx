@@ -5,13 +5,13 @@ import Dashboard_CreateTodoDialog from "@/components/static/dashboard-create-tod
 import { useAuthUser } from "@/stores/user-store";
 import { Toaster } from "sonner";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import APIService from "@/lib/api/api.service";
 import CachingKeys from "@/constants/caching-keys";
 import { BASE_USER } from "../../../shared/types/user/user.types";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
-import { ClipboardPlusIcon } from "lucide-react";
+import { ClipboardPlusIcon, TrashIcon } from "lucide-react";
 import {
     Empty,
     EmptyContent,
@@ -24,8 +24,30 @@ import { useDialogStore } from "@/stores/dialog-store";
 import Dashboard_TaskItemSkeleton from "@/components/static/dashboard-task-loading-skeleton";
 import Dashboard_TaskItem from "@/components/static/dashboard-task-item";
 import { useDashboardTabsStore } from "@/stores/dashboard-tabs";
-import { TASKS_RESPONSE } from "../../../shared/types/task/task.types";
+import {
+    BASE_TASK,
+    TASKS_RESPONSE,
+} from "../../../shared/types/task/task.types";
 import { DashboardTypes, GetIconForTab } from "@/constants/dashboard-tasb";
+import {
+    Item,
+    ItemContent,
+    ItemDescription,
+    ItemTitle,
+} from "@/components/ui/item";
+import { motion } from "framer-motion";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function DashboardPage(): React.JSX.Element {
     const { user, setUser } = useAuthUser();
@@ -69,7 +91,17 @@ function DashboardContent({
         enabled: !!user,
     });
 
+    const { data: deletedTaskData, isPending: isDeletedTaskLoading } = useQuery(
+        {
+            queryFn: () => APIService.getDeletedTasks(user.id),
+            queryKey: [CachingKeys.DELETED_TASK_KEY],
+        },
+    );
+
     const { currentTab, setCurrentTab } = useDashboardTabsStore();
+
+    console.log("Deleted Task", deletedTaskData);
+    console.log("Normal Task", taskData);
 
     return (
         <React.Fragment>
@@ -115,7 +147,11 @@ function DashboardContent({
                                 taskData={taskData!}
                             />
                         ) : currentTab === DashboardTypes.RecentlyDeleted ? (
-                            <div>Recently Deleted</div>
+                            <Dashboard_RecentlyDeleatedContent
+                                isTasksLoading={isDeletedTaskLoading}
+                                taskData={deletedTaskData!}
+                                user={user}
+                            />
                         ) : currentTab === DashboardTypes.Archived ? (
                             <div>Archived</div>
                         ) : (
@@ -125,6 +161,174 @@ function DashboardContent({
                 </div>
             </main>
         </React.Fragment>
+    );
+}
+
+interface DashboardRecentlyDeletedTaskContentProps {
+    isTasksLoading: boolean;
+    taskData: TASKS_RESPONSE | null;
+    user: BASE_USER;
+}
+
+function Dashboard_RecentlyDeleatedContent({
+    isTasksLoading,
+    taskData,
+    user,
+}: DashboardRecentlyDeletedTaskContentProps): React.ReactElement {
+    return (
+        <div>
+            {isTasksLoading ? (
+                <div className={"w-full grid grid-cols-3 gap-4"}>
+                    <Dashboard_TaskItemSkeleton />
+                </div>
+            ) : taskData?.tasks?.length === 0 ? (
+                <Empty>
+                    <EmptyHeader>
+                        <EmptyMedia>
+                            <TrashIcon />
+                        </EmptyMedia>
+                        <EmptyTitle>No Recently Deleted Tasks!</EmptyTitle>
+                        <EmptyDescription>
+                            You haven&apos;t deleted any tasks yet. Once a task
+                            is deleted it will show here.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                </Empty>
+            ) : (
+                <div className={"w-full grid grid-cols-3 gap-4"}>
+                    {taskData!.tasks!.map((task, index) => {
+                        return (
+                            <Dashboard_RecentlyDeletedTaskItem
+                                key={index}
+                                task={task}
+                                user={user}
+                                index={index}
+                            />
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+interface DashboardRecentlyDeletedTaskItemProps {
+    task: BASE_TASK;
+    user: BASE_USER;
+    index: number;
+}
+
+function Dashboard_RecentlyDeletedTaskItem({
+    task,
+    user,
+    index,
+}: DashboardRecentlyDeletedTaskItemProps): React.JSX.Element {
+    const queryClient = useQueryClient();
+    const restoreTaskMutation = useMutation({
+        mutationFn: APIService.restoreTask,
+        mutationKey: [
+            CachingKeys.TASK_KEY,
+            user.id,
+            CachingKeys.DELETED_TASK_KEY,
+        ],
+        onSuccess: async (data) => {
+            if (!data.success) {
+                toast.error(data.message);
+                return;
+            }
+
+            queryClient.setQueryData<TASKS_RESPONSE>(
+                [CachingKeys.TASK_KEY, user.id],
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        tasks: old.tasks?.filter((t) => t.id !== task.id) ?? [],
+                    };
+                },
+            );
+
+            await queryClient.invalidateQueries({
+                queryKey: [
+                    user.id,
+                    CachingKeys.TASK_KEY,
+                ],
+            });
+            toast.success(data.message);
+        },
+    });
+
+    function onTaskRestore() {
+        restoreTaskMutation.mutate({
+            taskId: task.id,
+            userId: user.id,
+        });
+    }
+
+    return (
+        <motion.span
+            animate={{
+                opacity: 1,
+                filter: "blur(0px)",
+            }}
+            initial={{
+                opacity: 0,
+                filter: "blur(10px)",
+            }}
+            exit={{
+                opacity: 0,
+                filter: "blur(10px)",
+            }}
+            transition={{
+                duration: 0.3,
+                delay: 0.05 * index,
+            }}
+            className={"min-h-[50px] flex flex-col justify-start"}
+        >
+            <AlertDialog>
+                <Item
+                    variant={"outline"}
+                    className={
+                        "h-full w-full cursor-pointer !p-0 flex justify-start items-start hover:dark:bg-white/10 overflow-clip hover:bg-black/5"
+                    }
+                >
+                    <AlertDialogTrigger className={"w-full h-full"}>
+                        <ItemContent className={"!p-4 h-full w-full"}>
+                            <ItemTitle className={"text-left"}>
+                                {task.title.length < 45
+                                    ? task.title
+                                    : task.title.substring(0, 15) + "..."}
+                            </ItemTitle>
+                            {task.description && (
+                                <ItemDescription className={"!p-0 text-left"}>
+                                    {task.description.length < 25
+                                        ? task.description
+                                        : task.description.substring(0, 25) +
+                                          "..."}
+                                </ItemDescription>
+                            )}
+                        </ItemContent>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Restore task?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This task will be restored to the main task's
+                                list.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={onTaskRestore}>
+                                Restore
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </Item>
+            </AlertDialog>
+        </motion.span>
     );
 }
 

@@ -6,8 +6,10 @@ import type {
 } from "../../../shared/types/auth/auth.types";
 import { BASE_API_ROUTE } from "../../../server/src/constants/api";
 import {
+    BASE_TASK,
     CREATE_TASK_DTO,
     DELETE_TASK_DTO,
+    RESTORE_TASK_DTO,
     TASK_RESPONSE,
     TASKS_RESPONSE,
     UPDATE_TASK_DTO,
@@ -136,6 +138,40 @@ export default class APIService {
                 "Content-Type": "application/json",
             },
             credentials: "include",
+        });
+        return await res.json();
+    }
+
+    public static async getDeletedTasks(
+        userId: string,
+    ): Promise<TASKS_RESPONSE> {
+        const res = await fetch(
+            APIHelperService.getTaskEndpoint(`/recently-deleted/${userId}`),
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+        return await res.json();
+    }
+
+    public static async restoreTask(
+        taskDetails: RESTORE_TASK_DTO,
+    ): Promise<TASK_RESPONSE> {
+        const { taskId, userId } = taskDetails;
+        const res = await fetch(APIHelperService.getTaskEndpoint("/restore"), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                taskId,
+                userId,
+            }),
         });
         return await res.json();
     }

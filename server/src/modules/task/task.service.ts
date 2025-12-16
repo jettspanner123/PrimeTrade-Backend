@@ -3,6 +3,9 @@ import {
     BASE_TASK,
     CREATE_TASK_DTO,
     DELETE_TASK_DTO,
+    RESTORE_TASK_DTO,
+    TASK_RESPONSE,
+    TASKS_RESPONSE,
     UPDATE_TASK_DTO,
     UPDATE_TASK_SERVICE_RESPONSE,
 } from "../../../../shared/types/task/task.types.js";
@@ -37,6 +40,37 @@ export default class TaskService {
         await TaskHelperService.checkIfUserIdExists(userId);
         const tasks = await db.task.findMany({ where: { userId } });
         return tasks.filter((task) => task.deletionStatus !== "SOFT_DELETED");
+    }
+
+    async getRecentlyDeletedTasksForId(
+        userId: string,
+    ): Promise<Array<BASE_TASK>> {
+        await TaskHelperService.checkIfUserIdExists(userId);
+        const tasks = await db.task.findMany({
+            where: { userId, deletionStatus: "SOFT_DELETED" },
+        });
+        return tasks;
+    }
+
+    async restoreDeletedTaskForId(
+        taskDetails: RESTORE_TASK_DTO,
+    ): Promise<BASE_TASK> {
+        const { userId, taskId } = taskDetails;
+
+        await TaskHelperService.checkIfTaskIdExists({ userId, taskId });
+
+        const task = await db.task.update({
+            where: {
+                id: taskId,
+                userId,
+            },
+            data: {
+                deletedAt: null,
+                deletionStatus: "NOT_DELETED",
+            },
+        });
+
+        return task;
     }
 
     // Delete a task for a user id.

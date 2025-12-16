@@ -8,6 +8,7 @@ import { Context } from "hono";
 import {
     CREATE_TASK_DTO,
     DELETE_TASK_DTO,
+    RESTORE_TASK_DTO,
     TASK_RESPONSE,
     TASKS_RESPONSE,
     UPDATE_TASK_DTO,
@@ -127,7 +128,12 @@ export default class TaskController {
 
     public static async updateTask(context: Context) {
         try {
-            const { userId, task: toUpdateTask, taskId }: UPDATE_TASK_DTO =
+            const {
+                userId,
+                task: toUpdateTask,
+                taskId,
+                status,
+            }: UPDATE_TASK_DTO =
                 //@ts-ignore
                 context.req.valid("json");
 
@@ -135,6 +141,7 @@ export default class TaskController {
                 userId,
                 task: toUpdateTask,
                 taskId,
+                status,
             });
 
             return context.json(
@@ -156,6 +163,66 @@ export default class TaskController {
                     currentTask: null,
                     errors: err instanceof Error ? err.message : err,
                 } satisfies UPDATE_TASK_RESPONSE,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    public static async getRecentlyDeletedTasksForId(context: Context) {
+        try {
+            // @ts-ignore
+            const { id }: PARAM_ID_DTO = context.req.valid("param");
+
+            const tasks = await taskService.getRecentlyDeletedTasksForId(id);
+            return context.json(
+                {
+                    success: true,
+                    message: "List of tasks!",
+                    tasks,
+                    errors: null,
+                } satisfies TASKS_RESPONSE,
+                StatusCodes.OK,
+            );
+        } catch (err: any) {
+            return context.json(
+                {
+                    success: false,
+                    message: "Failed to fetch deleted tasks!",
+                    tasks: null,
+                    errors: err instanceof Error ? err.message : err,
+                } satisfies TASKS_RESPONSE,
+                StatusCodes.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    public static async restoreTaskById(context: Context) {
+        try {
+            const { userId, taskId }: RESTORE_TASK_DTO =
+                // @ts-ignore
+                context.req.valid("json");
+            const task = await taskService.restoreDeletedTaskForId({
+                taskId,
+                userId,
+            });
+
+            return context.json(
+                {
+                    success: true,
+                    message: "Task Restored Successfully!",
+                    task,
+                    errors: null,
+                } satisfies TASK_RESPONSE,
+                StatusCodes.OK,
+            );
+        } catch (err: any) {
+            return context.json(
+                {
+                    success: false,
+                    message: "Error Restoring Task!",
+                    task: null,
+                    errors: err instanceof Error ? err.message : err,
+                } satisfies TASK_RESPONSE,
                 StatusCodes.INTERNAL_SERVER_ERROR,
             );
         }
