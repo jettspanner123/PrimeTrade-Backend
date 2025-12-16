@@ -21,7 +21,6 @@ import { BASE_RESPONSE } from "../../../shared/types/base/base.types";
 export default class APIService {
     public static async login(userDetails: LOGIN_DTO): Promise<LOGIN_RESPONSE> {
         const { username, password } = userDetails;
-        console.log(userDetails);
         const res = await fetch(APIHelperService.getAuthEndpoint("/login"), {
             method: "POST",
             headers: {

@@ -10,8 +10,12 @@ export const createTaskSchema = z.object({
     userId: z.string({ error: "User ID is required" }),
     title: z
         .string({ error: "Title is required" })
-        .min(1, { message: "Title cannot be empty" }),
-    description: z.string().optional(),
+        .min(1, { message: "Title cannot be empty" })
+        .max(120, { message: "Title should be under 120 characters" }),
+    description: z
+        .string()
+        .max(500, { message: "Description should be under 500 characters" })
+        .optional(),
 });
 
 export const deleteTaskSchema = z.object({

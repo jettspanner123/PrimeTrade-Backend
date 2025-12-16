@@ -11,7 +11,8 @@
     "zod": "^4.1.13"
   },
   "scripts": {
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run --watch src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
