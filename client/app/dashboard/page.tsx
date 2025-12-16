@@ -111,8 +111,7 @@ function DashboardContent({
             queryFn: () => APIService.getArchivedTasks(user.id),
             queryKey: [CachingKeys.ARCHIVED_TASK_KEY, user.id],
             enabled: !!user,
-        },
-    );
+        });
 
     const { data: taskStatsData, isPending: isTaskStatsLoading } = useQuery({
         queryFn: () => APIService.getTaskStats(user.id),
@@ -125,35 +124,41 @@ function DashboardContent({
     return (
         <React.Fragment>
             <Toaster position="bottom-center" />
-            <main className="flex flex-col items-center !py-[2rem] ">
+            <main className="flex flex-col items-center md:!py-[2rem] !p-4 md:!p-0">
                 <Dashboard_CreateTodoDialog user={user} setUser={setUser} />
 
                 {/* // Main dashboard content */}
-                <div className="flex gap-4 w-full max-w-[1200px] h-[500px] !mt-4">
+                <div className="md:flex gap-4 w-full max-w-[1200px] min-h-[500px] !mt-4">
                     {/*Sidebar*/}
-                    <Card className="flex-1 !px-4">
-                        {Object.values(DashboardTypes).map((type, index) => {
-                            const TabIcon = GetIconForTab(type);
-                            return (
-                                <Button
-                                    className={
-                                        "flex justify-start items-center"
-                                    }
-                                    onClick={() => {
-                                        setCurrentTab(type);
-                                    }}
-                                    variant={
-                                        currentTab === type
-                                            ? "default"
-                                            : "ghost"
-                                    }
-                                    key={`sidebar-tab-${type}`}
-                                >
-                                    {TabIcon}
-                                    {type}
-                                </Button>
-                            );
-                        })}
+                    <Card className="flex-1 !px-4 !mb-4 md:!mb-0">
+                        <div className={"w-full flex md:flex-col gap-6"}>
+                            {Object.values(DashboardTypes).map(
+                                (type, index) => {
+                                    const TabIcon = GetIconForTab(type);
+                                    return (
+                                        <Button
+                                            className={
+                                                "flex justify-center md:justify-start items-center flex-1 "
+                                            }
+                                            onClick={() => {
+                                                setCurrentTab(type);
+                                            }}
+                                            variant={
+                                                currentTab === type
+                                                    ? "default"
+                                                    : "ghost"
+                                            }
+                                            key={`sidebar-tab-${type}`}
+                                        >
+                                            {TabIcon}
+                                            <span className={"md:block hidden"}>
+                                                {type}
+                                            </span>
+                                        </Button>
+                                    );
+                                },
+                            )}
+                        </div>
                     </Card>
 
                     {/*Displayed Content*/}
@@ -205,35 +210,46 @@ function Dashboard_HomeContent({
     return (
         <div>
             {isTasksLoading ? (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
+                <div className={"w-full grid grid-cols-2 md:grid-cols-3 gap-4"}>
                     <Dashboard_TaskItemSkeleton />
                     <Dashboard_TaskItemSkeleton />
                     <Dashboard_TaskItemSkeleton />
                 </div>
             ) : taskData?.tasks?.length === 0 ? (
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia>
-                            <ClipboardPlusIcon />
-                        </EmptyMedia>
-                        <EmptyTitle>No Tasks Yet!</EmptyTitle>
-                        <EmptyDescription>
-                            You haven&apos;t created any tasks yet. Get started
-                            by creating your first task.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                    <EmptyContent>
-                        <Button
-                            onClick={() => {
-                                setCreateTodoModelOpen(true);
-                            }}
-                        >
-                            Create Task
-                        </Button>
-                    </EmptyContent>
-                </Empty>
+                <motion.div
+                    animate={{
+                        opacity: 1,
+                        filter: "blur(0px)",
+                    }}
+                    initial={{
+                        opacity: 0,
+                        filter: "blur(10px)",
+                    }}
+                >
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyMedia>
+                                <ClipboardPlusIcon />
+                            </EmptyMedia>
+                            <EmptyTitle>No Tasks Yet!</EmptyTitle>
+                            <EmptyDescription>
+                                You haven&apos;t created any tasks yet. Get
+                                started by creating your first task.
+                            </EmptyDescription>
+                        </EmptyHeader>
+                        <EmptyContent>
+                            <Button
+                                onClick={() => {
+                                    setCreateTodoModelOpen(true);
+                                }}
+                            >
+                                Create Task
+                            </Button>
+                        </EmptyContent>
+                    </Empty>
+                </motion.div>
             ) : (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
+                <div className={"w-full grid grid-cols-2 md:grid-cols-3 gap-4"}>
                     {taskData!.tasks!.map((task, index) => {
                         return (
                             <Dashboard_TaskItem
@@ -261,19 +277,39 @@ function Dashboard_StatisticsContent({
 }: DashboardStatisticsContentProps): React.JSX.Element {
     if (isStatsLoading || !statsData) {
         return (
-            <div className="flex h-full w-full items-center justify-center">
+            <motion.div
+                animate={{
+                    opacity: 1,
+                    filter: "blur(0px)",
+                }}
+                initial={{
+                    opacity: 0,
+                    filter: "blur(10px)",
+                }}
+                className="flex h-full w-full items-center justify-center"
+            >
                 <Spinner className="size-6" />
-            </div>
+            </motion.div>
         );
     }
 
     if (!statsData.success || !statsData.stats) {
         return (
-            <div className="flex h-full w-full items-center justify-center">
+            <motion.div
+                animate={{
+                    opacity: 1,
+                    filter: "blur(0px)",
+                }}
+                initial={{
+                    opacity: 0,
+                    filter: "blur(10px)",
+                }}
+                className="flex h-full w-full items-center justify-center"
+            >
                 <p className="text-sm text-red-500">
                     Failed to load statistics. Please try again later.
                 </p>
-            </div>
+            </motion.div>
         );
     }
 
@@ -302,7 +338,17 @@ function Dashboard_StatisticsContent({
     ];
 
     return (
-        <div className="flex h-full flex-col gap-6 py-4">
+        <motion.div
+            animate={{
+                opacity: 1,
+                filter: "blur(0px)",
+            }}
+            initial={{
+                opacity: 0,
+                filter: "blur(10px)",
+            }}
+            className="flex h-full flex-col gap-6 py-4"
+        >
             {/* Top summary cards */}
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <Card className="flex flex-col gap-1 px-4 py-3">
@@ -414,6 +460,6 @@ function Dashboard_StatisticsContent({
                     </div>
                 </div>
             </Card>
-        </div>
+        </motion.div>
     );
 }

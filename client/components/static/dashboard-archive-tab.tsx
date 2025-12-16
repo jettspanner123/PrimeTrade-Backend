@@ -10,6 +10,7 @@ import {
     EmptyTitle,
 } from "@/components/ui/empty";
 import { FolderClosedIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import Dashboard_TaskItem from "@/components/static/dashboard-task-item";
 
 interface DashboardArchivedTaskContentProps {
@@ -26,24 +27,35 @@ export default function Dashboard_ArchivedContent({
     return (
         <div>
             {isTasksLoading ? (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
+                <div className={"w-full grid grid-cols-2 md:grid-cols-3 gap-4"}>
                     <Dashboard_TaskItemSkeleton />
                 </div>
             ) : taskData?.tasks?.length === 0 ? (
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia>
-                            <FolderClosedIcon />
-                        </EmptyMedia>
-                        <EmptyTitle>No Archived Tasks!</EmptyTitle>
-                        <EmptyDescription>
-                            Archived tasks will appear here once you mark them
-                            as archived.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                </Empty>
+                <motion.div
+                    animate={{
+                        opacity: 1,
+                        filter: "blur(0px)",
+                    }}
+                    initial={{
+                        opacity: 0,
+                        filter: "blur(10px)",
+                    }}
+                >
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyMedia>
+                                <FolderClosedIcon />
+                            </EmptyMedia>
+                            <EmptyTitle>No Archived Tasks!</EmptyTitle>
+                            <EmptyDescription>
+                                Archived tasks will appear here once you mark
+                                them as archived.
+                            </EmptyDescription>
+                        </EmptyHeader>
+                    </Empty>
+                </motion.div>
             ) : (
-                <div className={"w-full grid grid-cols-3 gap-4"}>
+                <div className={"w-full grid grid-cols-2 md:grid-cols-3 gap-4"}>
                     {taskData!.tasks!.map((task, index) => {
                         return (
                             <Dashboard_TaskItem

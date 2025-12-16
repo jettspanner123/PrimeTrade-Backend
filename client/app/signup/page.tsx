@@ -99,7 +99,7 @@ export default function SignupPage(): React.JSX.Element {
                             <CardTitle>Signup</CardTitle>
                             <CardDescription>
                                 Enter the following details to create an
-                                accound.
+                                account.
                             </CardDescription>
                         </CardHeader>
                     </motion.div>
@@ -246,4 +246,3 @@ export default function SignupPage(): React.JSX.Element {
         </React.Fragment>
     );
 }
-

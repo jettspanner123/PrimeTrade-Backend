@@ -132,7 +132,9 @@ export default function Dashboard_CreateTodoDialog({
                             <DialogTrigger asChild>
                                 <Button>
                                     <Plus />
-                                    Create Task
+                                    <span className={"md:block hidden"}>
+                                        Create Task
+                                    </span>
                                 </Button>
                             </DialogTrigger>
                             <AlertDialogTrigger asChild>

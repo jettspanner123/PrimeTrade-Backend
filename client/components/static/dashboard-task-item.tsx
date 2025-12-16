@@ -62,6 +62,20 @@ interface Dashboard_TaskItemProps {
     index: number;
 }
 
+function getStatusIndicatorColor(status: TaskStatus): string {
+    switch (status) {
+        case "COMPLETED":
+            return "bg-emerald-500";
+        case "IN_PROGRESS":
+            return "bg-amber-500";
+        case "ARCHIVED":
+            return "bg-slate-400";
+        case "TODO":
+        default:
+            return "bg-sky-500";
+    }
+}
+
 export default function Dashboard_TaskItem({
     task,
     user,
@@ -196,6 +210,11 @@ export default function Dashboard_TaskItem({
                                 "h-full w-full cursor-pointer hover:dark:bg-white/10 hover:bg-black/5 relative"
                             }
                         >
+                            <span
+                                className={`absolute right-3 top-3 h-2.5 w-2.5 rounded-full ${getStatusIndicatorColor(
+                                    task.status,
+                                )}`}
+                            />
                             <ItemContent>
                                 <ItemTitle>
                                     {task.title.length < 45
