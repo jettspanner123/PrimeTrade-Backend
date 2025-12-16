@@ -64,7 +64,10 @@ export default function Dashboard_RecentlyDeletedTaskItem({
             );
 
             await queryClient.invalidateQueries({
-                queryKey: [user.id, CachingKeys.TASK_KEY],
+                queryKey: [CachingKeys.TASK_KEY, user.id],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.DELETED_TASK_KEY, user.id],
             });
             await queryClient.invalidateQueries({
                 queryKey: [CachingKeys.TASK_STATS_KEY, user.id],

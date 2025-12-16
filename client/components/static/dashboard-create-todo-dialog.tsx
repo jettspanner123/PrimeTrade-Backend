@@ -123,9 +123,13 @@ export default function Dashboard_CreateTodoDialog({
     }
 
     return (
-        <Dialog open={isCreateTodoModelOpen} onOpenChange={setCreateTodoModelOpen}>
+        <Dialog
+            open={isCreateTodoModelOpen}
+            onOpenChange={setCreateTodoModelOpen}
+        >
             {/* // Trigger for adding a new task */}
             <AlertDialog>
+                {/* Top header banner */}
                 <RegistrationScreenTopBanner
                     trailingChildren={
                         <div className="flex gap-4 items-center">

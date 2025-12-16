@@ -14,8 +14,6 @@ import { Button } from "@/components/ui/button";
 import {
     BarChart2Icon,
     ClipboardPlusIcon,
-    FolderClosedIcon,
-    TrashIcon,
 } from "lucide-react";
 import {
     Empty,
@@ -35,25 +33,7 @@ import {
     TASK_STATS_RESPONSE,
 } from "../../../shared/types/task/task.types";
 import { DashboardTypes, GetIconForTab } from "@/constants/dashboard-tasb";
-import {
-    Item,
-    ItemContent,
-    ItemDescription,
-    ItemTitle,
-} from "@/components/ui/item";
 import { motion } from "framer-motion";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
 import Dashboard_ArchivedContent from "@/components/static/dashboard-archive-tab";
 import Dashboard_RecentlyDeletedContent from "@/components/static/dashboard-recently-deleted-tab";
 
@@ -124,13 +104,15 @@ function DashboardContent({
     return (
         <React.Fragment>
             <Toaster position="bottom-center" />
-            <main className="flex flex-col items-center md:!py-[2rem] !p-4 md:!p-0">
+            <main className="flex flex-col items-center md:!py-[2rem] !p-4">
                 <Dashboard_CreateTodoDialog user={user} setUser={setUser} />
 
                 {/* // Main dashboard content */}
                 <div className="md:flex gap-4 w-full max-w-[1200px] min-h-[500px] !mt-4">
+
+
                     {/*Sidebar*/}
-                    <Card className="flex-1 !px-4 !mb-4 md:!mb-0">
+                    <Card className="flex-1 !px-4 py-4 md:py-6 !mb-4 md:!mb-0">
                         <div className={"w-full flex md:flex-col gap-6"}>
                             {Object.values(DashboardTypes).map(
                                 (type, index) => {

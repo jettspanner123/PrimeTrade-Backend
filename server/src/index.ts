@@ -1,9 +1,7 @@
-import AuthRoute from "./modules/auth/auth.route.js";
-import UserRoute from "./modules/user/user.route.js";
-import TaskRoute from "./modules/task/task.route.js";
 import CustomLogger from "./middleware/logger.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import ApiV1 from "./routes/v1/index.js";
 
 const app = new Hono();
 
@@ -20,8 +18,6 @@ app.use(
 );
 
 // Routes
-app.route("/auth", AuthRoute);
-app.route("/user", UserRoute);
-app.route("/task", TaskRoute);
+app.route("/api/v1", ApiV1)
 
 export default app;

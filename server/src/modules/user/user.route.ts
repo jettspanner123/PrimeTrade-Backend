@@ -6,7 +6,11 @@ import {
 } from "../../../../shared/types/user/user.types.js";
 import UserController from "./user.controller.js";
 
+import { AuthMiddleware } from '../../middleware/auth.js';
+
 const userRoute = new Hono();
+
+userRoute.use("*", AuthMiddleware);
 
 userRoute.get("/health", UserController.healthCheck);
 userRoute.get("/", UserController.getAllUsers);
