@@ -37,7 +37,7 @@ export const updateTaskSchema = z
     .extend({
         status: z.enum([...Object.values(TaskStatus)], {
             error: "Task Status not provided!",
-        }),
+        }).optional(),
     });
 
 // MARK: Exported Types

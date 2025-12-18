@@ -36,18 +36,17 @@ export default class TaskService {
     }
 
     // Get All Task for a user id.
-    async getTasksForId(userId: string): Promise<Array<BASE_TASK>> {
-        await TaskHelperService.checkIfUserIdExists(userId);
-        const tasks = await db.task.findMany({
+    async getTasksForId(taskId: string): Promise<Array<BASE_TASK>> {
+        const task = await db.task.findMany({
             where: {
-                userId,
+                userId: taskId,
                 deletionStatus: "NOT_DELETED",
                 status: {
                     not: "ARCHIVED",
                 },
             },
         });
-        return tasks;
+        return task;
     }
 
     async getTaskStatsForId(userId: string) {
@@ -111,7 +110,6 @@ export default class TaskService {
         taskDetails: RESTORE_TASK_DTO,
     ): Promise<BASE_TASK> {
         const { userId, taskId } = taskDetails;
-
         await TaskHelperService.checkIfTaskIdExists({ userId, taskId });
 
         const task = await db.task.update({
