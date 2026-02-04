@@ -62,7 +62,7 @@ export default function SignupPage(): React.JSX.Element {
         mutationKey: [CachingKeys.SIGNUP_KEY],
         onSuccess: (data: REGISTER_RESPONSE) => {
             if (!data.success) {
-                toast.error(data.errors);
+                toast.error(data.errors || "Something went wrong!");
                 return;
             }
 

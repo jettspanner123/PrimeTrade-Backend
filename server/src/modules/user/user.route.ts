@@ -10,15 +10,23 @@ import { AuthMiddleware } from '../../middleware/auth.js';
 
 const userRoute = new Hono();
 
+// MARK: Auth Middleware
 userRoute.use("*", AuthMiddleware);
 
+// MARK: Get User Controller Health Check
 userRoute.get("/health", UserController.healthCheck);
+
+// MARK: Get All Users, [ Test Route ]
 userRoute.get("/", UserController.getAllUsers);
+
+// MARK: Get User By Username
 userRoute.get(
     "/:username",
     GET_USER_BY_USERNAME_VALIDATOR,
     UserController.getUserByUsername,
 );
+
+// MARK: Update User by Id
 userRoute.put(
     "/:id",
     UPDATE_USER_VALIDATOR,

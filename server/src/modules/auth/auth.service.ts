@@ -21,9 +21,21 @@ export default class AuthService {
         const { username, password, email, firstName, lastName } = userDetails;
 
         // Fallback
-        const user_t = await db.user.findUnique({ where: { email } });
-        if (user_t)
-            throw new Error("User Already Exists! Try different email!");
+        const user_t = await db.user.findFirst({
+            where: {
+                OR: [{ email }, { username }],
+            },
+        });
+        if (user_t) {
+            if (user_t.email === email) {
+                throw new Error("Email already exists! Try a different email.");
+            }
+            if (user_t.username === username) {
+                throw new Error(
+                    "Username already exists! Try a different username.",
+                );
+            }
+        }
 
         // Create User
         const user = await db.user.create({
