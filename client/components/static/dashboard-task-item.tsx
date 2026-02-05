@@ -106,13 +106,25 @@ export default function Dashboard_TaskItem({
                     };
                 },
             );
+            queryClient.setQueryData<TASKS_RESPONSE>(
+                [CachingKeys.ARCHIVED_TASK_KEY, user.id],
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        tasks: old.tasks!.filter((t) => t.id !== task.id),
+                    };
+                },
+            );
 
             await queryClient.invalidateQueries({
-                queryKey: [
-                    CachingKeys.TASK_KEY,
-                    user.id,
-                    CachingKeys.DELETED_TASK_KEY,
-                ],
+                queryKey: [CachingKeys.TASK_KEY, user.id],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.ARCHIVED_TASK_KEY, user.id],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: [CachingKeys.DELETED_TASK_KEY, user.id],
             });
             await queryClient.invalidateQueries({
                 queryKey: [CachingKeys.TASK_STATS_KEY, user.id],

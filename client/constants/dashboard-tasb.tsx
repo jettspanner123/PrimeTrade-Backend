@@ -4,6 +4,7 @@ import {
     FolderClosedIcon,
     HouseIcon,
     TrashIcon,
+    UserCircleIcon,
 } from "lucide-react";
 
 export const DashboardTypes = {
@@ -11,6 +12,7 @@ export const DashboardTypes = {
     RecentlyDeleted: "RECENT_DELETED",
     Archived: "ARCHIVED",
     Statistics: "STATISTICS",
+    Profile: "PROFILE",
 } as const;
 export type DashboardType =
     (typeof DashboardTypes)[keyof typeof DashboardTypes];
@@ -23,6 +25,8 @@ export function GetIconForTab(tab: DashboardType): React.JSX.Element {
             return <TrashIcon />;
         case DashboardTypes.Archived:
             return <FolderClosedIcon />;
+        case DashboardTypes.Profile:
+            return <UserCircleIcon />;
         default:
             return <ChartAreaIcon />;
     }

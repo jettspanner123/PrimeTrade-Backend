@@ -6,6 +6,7 @@ import {
     UPDATE_USER_SERVICE_RESPONSE,
     USERS_RESPONSE,
 } from "../../../../shared/types/user/user.types.js";
+import { Prisma } from "../../db/generated/prisma/client.js";
 import DatabaseService from "../../db/client.js";
 
 const db = DatabaseService.getInstance();
@@ -42,22 +43,36 @@ export default class UserService {
         if (!user) throw new Error(`User not found!`);
 
         if (!UserHelperService.checkChangesForUpdation(user, userUpdateDetails))
-            throw new Error("Cannot update if the username is the same!");
+            throw new Error("No changes to save.");
 
-        const updatedUser = await db.user.update({
-            where: { id: currentUserId },
-            data: {
-                email,
-                firstName,
-                lastName,
-                username,
-            },
-        });
+        try {
+            const updatedUser = await db.user.update({
+                where: { id: currentUserId },
+                data: {
+                    email,
+                    firstName,
+                    lastName,
+                    username,
+                },
+            });
 
-        return {
-            currentUser: updatedUser,
-            previousUser: user,
-        };
+            return {
+                currentUser: updatedUser,
+                previousUser: user,
+            };
+        } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError) {
+                if (err.code === "P2002") {
+                    const target = (err.meta?.target as string[] | undefined)?.[0];
+                    if (target === "email")
+                        throw new Error("This email is already in use.");
+                    if (target === "username")
+                        throw new Error("This username is already taken.");
+                    throw new Error("This value is already in use by another account.");
+                }
+            }
+            throw err;
+        }
     }
 }
 

@@ -36,6 +36,7 @@ import { DashboardTypes, GetIconForTab } from "@/constants/dashboard-tasb";
 import { motion } from "framer-motion";
 import Dashboard_ArchivedContent from "@/components/static/dashboard-archive-tab";
 import Dashboard_RecentlyDeletedContent from "@/components/static/dashboard-recently-deleted-tab";
+import Dashboard_ProfileContent from "@/components/static/dashboard-profile-tab";
 
 export default function DashboardPage(): React.JSX.Element {
     const { user, setUser } = useAuthUser();
@@ -97,6 +98,12 @@ function DashboardContent({
         queryFn: () => APIService.getTaskStats(user.id),
         queryKey: [CachingKeys.TASK_STATS_KEY, user.id],
         enabled: !!user,
+    });
+
+    const { data: profileData, isPending: isProfileLoading } = useQuery({
+        queryFn: () => APIService.getUserByUsername(user.username),
+        queryKey: [CachingKeys.PROFILE_KEY, user.username],
+        enabled: !!user?.username,
     });
 
     const { currentTab, setCurrentTab } = useDashboardTabsStore();
@@ -163,6 +170,13 @@ function DashboardContent({
                                 isTasksLoading={isArchivedTaskLoading}
                                 taskData={archivedTaskData!}
                                 user={user}
+                            />
+                        ) : currentTab === DashboardTypes.Profile ? (
+                            <Dashboard_ProfileContent
+                                isProfileLoading={isProfileLoading}
+                                profileData={profileData ?? null}
+                                user={user}
+                                setUser={setUser}
                             />
                         ) : (
                             <Dashboard_StatisticsContent

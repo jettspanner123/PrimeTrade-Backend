@@ -1,4 +1,3 @@
-
 export default class CachingKeys {
     public static LOGIN_KEY: string = "login_key";
     public static SIGNUP_KEY: string = "signup_key";
@@ -6,4 +5,5 @@ export default class CachingKeys {
     public static DELETED_TASK_KEY: string = "deleted_task_key";
     public static ARCHIVED_TASK_KEY: string = "archived_task_key";
     public static TASK_STATS_KEY: string = "task_stats_key";
+    public static PROFILE_KEY: string = "profile_key";
 }

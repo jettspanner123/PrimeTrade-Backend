@@ -6,7 +6,6 @@ import type {
 } from "../../../shared/types/auth/auth.types";
 import { BASE_API_ROUTE } from "../../../server/src/constants/api";
 import {
-    BASE_TASK,
     CREATE_TASK_DTO,
     DELETE_TASK_DTO,
     RESTORE_TASK_DTO,
@@ -16,6 +15,10 @@ import {
     UPDATE_TASK_DTO,
     UPDATE_TASK_RESPONSE,
 } from "../../../shared/types/task/task.types";
+import {
+    UPDATE_USER_RESPONSE,
+    USER_RESPONSE,
+} from "../../../shared/types/user/user.types";
 import { BASE_RESPONSE } from "../../../shared/types/base/base.types";
 
 export default class APIService {
@@ -207,6 +210,42 @@ export default class APIService {
         });
         return await res.json();
     }
+
+    public static async getUserByUsername(
+        username: string,
+    ): Promise<USER_RESPONSE> {
+        const res = await fetch(
+            APIHelperService.getUserEndpoint(`/${username}`),
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            },
+        );
+        return (await res.json()) as USER_RESPONSE;
+    }
+
+    public static async updateUser(
+        id: string,
+        user: {
+            firstName?: string;
+            lastName?: string | null;
+            email?: string;
+            username?: string;
+        },
+    ): Promise<UPDATE_USER_RESPONSE> {
+        const res = await fetch(APIHelperService.getUserEndpoint(`/${id}`), {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ user }),
+        });
+        return (await res.json()) as UPDATE_USER_RESPONSE;
+    }
 }
 
 class APIHelperService {
@@ -220,5 +259,11 @@ class APIHelperService {
         return extension.length == 0
             ? `${BASE_API_ROUTE}/task`
             : `${BASE_API_ROUTE}/task${extension}`;
+    }
+
+    public static getUserEndpoint(extension: string = ""): string {
+        return extension.length == 0
+            ? `${BASE_API_ROUTE}/user`
+            : `${BASE_API_ROUTE}/user${extension}`;
     }
 }
